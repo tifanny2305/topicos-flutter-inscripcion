@@ -36,9 +36,9 @@ class InscripcionPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...gruposSeleccionados.map((grupo) => _buildGrupoCard(grupo)),
+                    ...gruposSeleccionados.map((grupo) => _construirGrupoCard(grupo)),
                     const SizedBox(height: 16),
-                    _buildInfoCard(),
+                    //_buildInfoCard(),
                   ],
                 ),
               ),
@@ -86,7 +86,7 @@ class InscripcionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildGrupoCard(Map<String, dynamic> grupo) {
+  Widget _construirGrupoCard(Map<String, dynamic> grupo) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -157,7 +157,7 @@ class InscripcionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  /*Widget _buildInfoCard() {
     return Card(
       color: Colors.blue.shade50,
       child: Padding(
@@ -187,7 +187,7 @@ class InscripcionPage extends StatelessWidget {
         ),
       ),
     );
-  }
+  }*/
 
   Widget _buildActionButtons(BuildContext context, InscripcionProvider provider) {
     return Container(
