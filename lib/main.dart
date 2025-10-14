@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'app.dart';
+import 'providers/materia_provider.dart';
+import 'providers/grupo_provider.dart';
+import 'providers/inscripcion_provider.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => MateriaProvider()),
+        ChangeNotifierProvider(create: (_) => GrupoProvider()),
+        ChangeNotifierProvider(create: (_) => InscripcionProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }

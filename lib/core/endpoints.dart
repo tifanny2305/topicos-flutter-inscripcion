@@ -1,6 +1,17 @@
 class Endpoints {
-static const baseMaterias = 'http://localhost:8001/api/materias';
-static const baseGrupos = 'http://localhost:8002/api/grupos';
-static const baseInscripciones = 'http://localhost:8003/api/inscripciones';
-static const baseInscripcionEstado = 'http://localhost:8003/api/inscripciones/estado';
+  static const String baseUrl = 'http://192.168.1.12:80/api';
+
+  // Endpoints
+  static const String materias = '/materias/materia';
+  static const String gruposPorMateria = '/grupos/grupo/materia'; // + /{id}
+  static const String inscripciones = '/inscripciones/inscripciones';
+  static String estadoInscripcion(String uuid) => '/inscripciones/estado/$uuid';
+
+  // Configuración
+  static const int timeoutSeconds = 30;
+  static const int pollingIntervalSeconds = 3;
+
+  // Datos de prueba (mientras no hay auth)
+  static const int estudianteId = 1;
+  static const int gestionId = 2;
 }

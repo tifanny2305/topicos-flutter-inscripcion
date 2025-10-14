@@ -3,14 +3,14 @@ import '../core/endpoints.dart';
 import '../models/materia.dart';
 
 class MateriaService {
-  final client = ApiClient();
+  final ApiClient _apiClient = ApiClient();
 
-  Future<List<Materia>> getMaterias() async {
-    final res = await client.get(Endpoints.baseMaterias);
-    final data = res.data as Map<String, dynamic>;
-    final list = data['materias'] as List<dynamic>? ?? [];
-    return list
-        .map((e) => Materia.fromJson(e as Map<String, dynamic>))
-        .toList();
+  Future<List<Materia>> obtenerMaterias() async {
+    try {
+      final response = await _apiClient.get(Endpoints.materias);
+      return (response as List).map((json) => Materia.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Error al obtener materias: $e');
+    }
   }
 }
