@@ -55,6 +55,7 @@ class _EstadoPageState extends State<EstadoPage> {
               return _buildLoadingState();
             }
 
+            //si la cola esta apagada y no procesa da error
             if (estado.isProcesando) {
               return _buildProcesandoState(widget.transactionId);
             }
@@ -63,9 +64,10 @@ class _EstadoPageState extends State<EstadoPage> {
               return _buildProcesadoState(estado);
             }
 
-            if (estado.isRechazado) {
+            //validaciones de choque
+            /*if (estado.isRechazado) {
               return _buildRechazadoState(estado);
-            }
+            }*/
 
             if (estado.isError) {
               return _buildErrorState(estado);
@@ -176,15 +178,16 @@ class _EstadoPageState extends State<EstadoPage> {
             ),
             const SizedBox(height: 24),
 
-            // Pasos del proceso
-            _buildProcesoSteps(),
+            // Pasos del proceso icon
+           _buildProcesoSteps(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProcesoSteps() {
+  //icon del proceso de estado
+ Widget _buildProcesoSteps() {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -297,11 +300,16 @@ class _EstadoPageState extends State<EstadoPage> {
                       ],
                     ),
                     const Divider(height: 24),
-                    _buildDetailRow(Icons.school, 'ID Inscripción', '${estado.datos['id']}'),
+                    //_buildDetailRow(Icons.school, 'Inscripción', '${estado.datos['id']}'),
                     const SizedBox(height: 12),
-                    _buildDetailRow(Icons.person, 'Estudiante ID', '${estado.datos['estudiante_id']}'),
+                    //_buildDetailRow(Icons.school, 'Inscripción', '${estado.datos['id']}'),
                     const SizedBox(height: 12),
-                    _buildDetailRow(Icons.event, 'Gestión ID', '${estado.datos['gestion_id']}'),
+                    _buildDetailRow(
+                      Icons.person,
+                      'Estudiante',
+                      '${estado.datos['estudiante_nombre'] ?? estado.datos['estudiante']['nombre'] ?? estado.datos['estudiante_id'] ?? ''}',
+                    ),
+                    _buildDetailRow(Icons.event, 'Gestión', '${estado.datos['gestion']['periodo']}'),
                     const SizedBox(height: 12),
                     _buildDetailRow(Icons.calendar_today, 'Fecha', estado.datos['fecha']),
                   ],
@@ -333,7 +341,7 @@ class _EstadoPageState extends State<EstadoPage> {
     );
   }
 
-  Widget _buildRechazadoState(estado) {
+  /*Widget _buildRechazadoState(estado) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -451,7 +459,7 @@ class _EstadoPageState extends State<EstadoPage> {
         ),
       ),
     );
-  }
+  }*/
 
   Widget _buildErrorState(estado) {
     return Center(

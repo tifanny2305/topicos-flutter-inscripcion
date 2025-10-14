@@ -65,39 +65,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Universidad XYZ',
+                    'Universidad UAGRM',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
                     ),
                   ),
                   const SizedBox(height: 48),
-
-                  // Banner de simulación
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.amber.shade700),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.amber.shade900),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Modo simulado - MVP',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.amber.shade900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
 
                   // Campo usuario
                   TextFormField(
@@ -175,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 24),
 
                   // Info de credenciales de prueba
-                  Container(
+                  /*Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
@@ -208,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                  ),
+                  ),*/
                 ],
               ),
             ),

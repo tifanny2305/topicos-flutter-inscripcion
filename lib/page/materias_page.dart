@@ -55,11 +55,11 @@ class _MateriasPageState extends State<MateriasPage> {
           return Column(
             children: [
               // Filtros
-              _buildFilters(provider),
+              _construirFiltros(provider),
               
               // Contador de selección
               if (provider.materiasSeleccionadas.isNotEmpty)
-                _buildSelectionCounter(provider),
+                _construirSeleccion(provider),
 
               // Lista de materias
               Expanded(
@@ -70,13 +70,13 @@ class _MateriasPageState extends State<MateriasPage> {
                         itemCount: provider.materiasFiltradas.length,
                         itemBuilder: (context, index) {
                           final materia = provider.materiasFiltradas[index];
-                          return _buildMateriaCard(materia, provider);
+                          return _construirCardDeMateria(materia, provider);
                         },
                       ),
               ),
 
               // Botón continuar
-              _buildContinueButton(provider),
+              _construirBtnContinuarGrupo(provider),
             ],
           );
         },
@@ -84,7 +84,7 @@ class _MateriasPageState extends State<MateriasPage> {
     );
   }
 
-  Widget _buildFilters(MateriaProvider provider) {
+  Widget _construirFiltros(MateriaProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
@@ -147,7 +147,7 @@ class _MateriasPageState extends State<MateriasPage> {
     );
   }
 
-  Widget _buildSelectionCounter(MateriaProvider provider) {
+  Widget _construirSeleccion(MateriaProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.blue.shade50,
@@ -179,7 +179,7 @@ class _MateriasPageState extends State<MateriasPage> {
     );
   }
 
-  Widget _buildMateriaCard(Materia materia, MateriaProvider provider) {
+  Widget _construirCardDeMateria(Materia materia, MateriaProvider provider) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: materia.selected ? 4 : 1,
@@ -279,7 +279,7 @@ class _MateriasPageState extends State<MateriasPage> {
     );
   }
 
-  Widget _buildContinueButton(MateriaProvider provider) {
+  Widget _construirBtnContinuarGrupo(MateriaProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

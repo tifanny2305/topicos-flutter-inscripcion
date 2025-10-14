@@ -30,7 +30,7 @@ class InscripcionProvider with ChangeNotifier {
 
     try {
       final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       final request = InscripcionRequest(
         estudianteId: Endpoints.estudianteId,
         gestionId: Endpoints.gestionId,

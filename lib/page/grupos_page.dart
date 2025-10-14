@@ -61,7 +61,7 @@ class _GruposPageState extends State<GruposPage> {
           return Column(
             children: [
               // Barra de progreso
-              _buildProgressBar(provider),
+              _construirBarraDeProgreso(provider),
               
               // Lista de materias con grupos
               Expanded(
@@ -70,13 +70,13 @@ class _GruposPageState extends State<GruposPage> {
                   itemCount: provider.materiasConGrupos.length,
                   itemBuilder: (context, index) {
                     final materiaConGrupos = provider.materiasConGrupos[index];
-                    return _buildMateriaSection(materiaConGrupos, provider);
+                    return _construirCardGrupoCupo(materiaConGrupos, provider);
                   },
                 ),
               ),
 
               // Botón continuar
-              _buildContinueButton(provider),
+              _construirBtnContinuar(provider),
             ],
           );
         },
@@ -84,7 +84,7 @@ class _GruposPageState extends State<GruposPage> {
     );
   }
 
-  Widget _buildProgressBar(GrupoProvider provider) {
+  Widget _construirBarraDeProgreso(GrupoProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
@@ -123,7 +123,7 @@ class _GruposPageState extends State<GruposPage> {
     );
   }
 
-  Widget _buildMateriaSection(MateriaConGrupos materiaConGrupos, GrupoProvider provider) {
+  Widget _construirCardGrupoCupo(MateriaConGrupos materiaConGrupos, GrupoProvider provider) {
     final gruposDisponibles = provider.gruposConCupo(materiaConGrupos.grupos);
 
     return Card(
@@ -239,14 +239,14 @@ class _GruposPageState extends State<GruposPage> {
             const SizedBox(height: 8),
 
             // Lista de grupos
-            if (gruposDisponibles.isEmpty)
+            if (materiaConGrupos.grupos.isEmpty)
               _buildNoGruposMessage()
             else
-              ...gruposDisponibles.map((grupo) => _buildGrupoCard(
-                    grupo,
-                    materiaConGrupos,
-                    provider,
-                  )),
+              ...materiaConGrupos.grupos.map((grupo) => _construirGrupoCard(
+                grupo,
+                materiaConGrupos,
+                provider,
+                )),
           ],
         ),
       ),
@@ -279,7 +279,7 @@ class _GruposPageState extends State<GruposPage> {
     );
   }
 
-  Widget _buildGrupoCard(
+  Widget _construirGrupoCard(
     grupo,
     MateriaConGrupos materiaConGrupos,
     GrupoProvider provider,
@@ -401,7 +401,7 @@ class _GruposPageState extends State<GruposPage> {
     );
   }
 
-  Widget _buildContinueButton(GrupoProvider provider) {
+  Widget _construirBtnContinuar(GrupoProvider provider) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
