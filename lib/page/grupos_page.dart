@@ -239,14 +239,14 @@ class _GruposPageState extends State<GruposPage> {
             const SizedBox(height: 8),
 
             // Lista de grupos
-            if (gruposDisponibles.isEmpty)
+            if (materiaConGrupos.grupos.isEmpty)
               _buildNoGruposMessage()
             else
-              ...gruposDisponibles.map((grupo) => _buildGrupoCard(
-                    grupo,
-                    materiaConGrupos,
-                    provider,
-                  )),
+              ...materiaConGrupos.grupos.map((grupo) => _buildGrupoCard(
+                grupo,
+                materiaConGrupos,
+                provider,
+                )),
           ],
         ),
       ),
