@@ -73,7 +73,11 @@ class GrupoProvider with ChangeNotifier {
   void seleccionarGrupo(int materiaId, int grupoId) {
     final index = _materiasConGrupos.indexWhere((m) => m.materia.id == materiaId);
     if (index != -1) {
-      _materiasConGrupos[index].grupoSeleccionadoId = grupoId;
+      if (_materiasConGrupos[index].grupoSeleccionadoId == grupoId) {
+        _materiasConGrupos[index].grupoSeleccionadoId = null;
+      } else {
+        _materiasConGrupos[index].grupoSeleccionadoId = grupoId;
+      }
       notifyListeners();
     }
   }
