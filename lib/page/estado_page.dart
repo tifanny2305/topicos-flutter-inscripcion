@@ -13,19 +13,34 @@ class EstadoPage extends StatefulWidget {
 }
 
 class _EstadoPageState extends State<EstadoPage> {
+  late InscripcionProvider _provider;
+  bool _hasInitPolling = false;
+
   @override
   void initState() {
     super.initState();
-    // Iniciar polling al cargar la página
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<InscripcionProvider>().iniciarPolling(widget.transactionId);
-    });
+    // Ya no iniciar polling aquí usando context
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Guardar la referencia al provider para usarla también en dispose()
+    _provider = context.read<InscripcionProvider>();
+
+    if (!_hasInitPolling) {
+      _hasInitPolling = true;
+      // Iniciar polling después del primer frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _provider.iniciarPolling(widget.transactionId);
+      });
+    }
   }
 
   @override
   void dispose() {
-    // Detener polling al salir
-    context.read<InscripcionProvider>().detenerPolling();
+    // Usar la referencia guardada; no llamar a context.read aquí
+    _provider.detenerPolling();
     super.dispose();
   }
 
@@ -52,6 +67,7 @@ class _EstadoPageState extends State<EstadoPage> {
             final estado = provider.estadoActual;
 
             if (estado == null) {
+              print("sin eestado");
               return _buildLoadingState();
             }
 
@@ -65,9 +81,9 @@ class _EstadoPageState extends State<EstadoPage> {
             }
 
             //validaciones de choque
-            /*if (estado.isRechazado) {
+            if (estado.isRechazado) {
               return _buildRechazadoState(estado);
-            }*/
+            }
 
             if (estado.isError) {
               return _buildErrorState(estado);
@@ -285,18 +301,18 @@ class _EstadoPageState extends State<EstadoPage> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    children: [
                     Row(
                       children: [
-                        Icon(Icons.assignment_turned_in, color: Colors.green.shade700),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Detalles de la inscripción',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                      Icon(Icons.assignment_turned_in, color: Colors.green.shade700),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Detalles de la inscripción',
+                        style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                         ),
+                      ),
                       ],
                     ),
                     const Divider(height: 24),
@@ -309,9 +325,22 @@ class _EstadoPageState extends State<EstadoPage> {
                       'Estudiante',
                       '${estado.datos['estudiante_nombre'] ?? estado.datos['estudiante']['nombre'] ?? estado.datos['estudiante_id'] ?? ''}',
                     ),
-                    _buildDetailRow(Icons.event, 'Gestión', '${estado.datos['gestion']['periodo']}'),
+                    _buildDetailRow(Icons.event, 'Gestión', '${estado.datos['gestion']['periodo']}/${estado.datos['gestion']['ano']}'),
                     const SizedBox(height: 12),
-                    _buildDetailRow(Icons.calendar_today, 'Fecha', estado.datos['fecha']),
+                    _buildDetailRow(
+                      Icons.calendar_today,
+                      'Fecha',
+                      (() {
+                      final fechaStr = estado.datos['fecha'];
+                      if (fechaStr == null) return '';
+                      try {
+                        final fecha = DateTime.parse(fechaStr);
+                        return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+                      } catch (_) {
+                        return fechaStr;
+                      }
+                      })(),
+                    ),
                   ],
                 ),
               ),
@@ -341,7 +370,7 @@ class _EstadoPageState extends State<EstadoPage> {
     );
   }
 
-  /*Widget _buildRechazadoState(estado) {
+  Widget _buildRechazadoState(estado) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -459,7 +488,7 @@ class _EstadoPageState extends State<EstadoPage> {
         ),
       ),
     );
-  }*/
+  }
 
   Widget _buildErrorState(estado) {
     return Center(

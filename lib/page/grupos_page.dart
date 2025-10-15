@@ -124,8 +124,7 @@ class _GruposPageState extends State<GruposPage> {
   }
 
   Widget _construirCardGrupoCupo(MateriaConGrupos materiaConGrupos, GrupoProvider provider) {
-    final gruposDisponibles = provider.gruposConCupo(materiaConGrupos.grupos);
-
+  // Nota: usamos directamente materiaConGrupos.grupos filtrados donde haga falta.
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -388,11 +387,12 @@ class _GruposPageState extends State<GruposPage> {
                   ],
                 ),
               ),
-              Radio(
+              Radio<int>(
                 value: grupo.id,
                 groupValue: materiaConGrupos.grupoSeleccionadoId,
                 onChanged: (_) => provider.seleccionarGrupo(materiaConGrupos.materia.id, grupo.id),
                 activeColor: Colors.blue,
+                toggleable: true,
               ),
             ],
           ),
