@@ -1,61 +1,62 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
+import 'package:topicos_inscripciones/page/estados/list_estado_page.dart';
+import 'package:topicos_inscripciones/widgets/notificacion.dart';
 import 'page/login_page.dart';
 import 'page/materias/materias_page.dart';
 import 'page/grupos/grupos_page.dart';
 import 'page/inscripciones/inscripcion_page.dart';
-import 'page/estado_page.dart';
 import 'models/materia.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Inscripciones - Tópicos',
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.blue,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: const LoginPage(), // Cambio aquí
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/materias':
-            return MaterialPageRoute(
-              builder: (_) => const MateriasPage(),
-            );
-            
-          case '/grupos':
-            final materias = settings.arguments as List<Materia>;
-            return MaterialPageRoute(
-              builder: (_) => GruposPage(materias: materias),
-            );
+    return NotificacionListener(
+      child: MaterialApp(
+        title: 'Inscripciones - Tópicos',
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        home: const LoginPage(),
+        onGenerateRoute: (settings) {
+          Widget page;
+          
+          switch (settings.name) {
+            case '/materias':
+              page = const MateriasPage();
+              break;
+              
+            case '/grupos':
+              final materias = settings.arguments as List<Materia>;
+              page = GruposPage(materias: materias);
+              break;
 
-          case '/inscripcion':
-            final grupos = settings.arguments as List<Map<String, dynamic>>;
-            return MaterialPageRoute(
-              builder: (_) => InscripcionPage(gruposSeleccionados: grupos),
-            );
+            case '/inscripcion':
+              final grupos = settings.arguments as List<Map<String, dynamic>>;
+              page = InscripcionPage(gruposSeleccionados: grupos);
+              break;
 
-          case '/estado':
-            final transactionId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => EstadoPage(transactionId: transactionId),
-            );
+            case '/estados':
+              page = const ListaEstadosPage();
+              break;
 
-          default:
-            return MaterialPageRoute(
-              builder: (_) => Scaffold(
+            default:
+              page = Scaffold(
                 appBar: AppBar(title: const Text('Error')),
                 body: const Center(
                   child: Text('Página no encontrada'),
                 ),
-              ),
-            );
-        }
-      },
+              );
+          }
+          
+          return MaterialPageRoute(builder: (_) => page);
+        },
+      ),
     );
   }
 }

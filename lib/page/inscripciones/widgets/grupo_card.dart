@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../models/grupo.dart';
 
 class GrupoCard extends StatelessWidget {
   final Map<String, dynamic> grupo;
