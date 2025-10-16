@@ -1,5 +1,5 @@
 class Endpoints {
-  static const String baseUrl = 'http://10.15.247.57:80/api';
+  static const String baseUrl = 'http://192.168.1.12:80/api';
 
   // Endpoints
   static const String materias = '/materias/materia';

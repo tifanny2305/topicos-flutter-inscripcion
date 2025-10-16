@@ -2,20 +2,29 @@ import 'package:flutter/material.dart';
 import '../models/materia.dart';
 import '../services/materia_service.dart';
 
+/// Provider responsable de manejar el estado y la lógica
+/// relacionada con la selección y filtrado de materias.
 class MateriaProvider with ChangeNotifier {
   final MateriaService _service = MateriaService();
 
+  // ===============================
+  // Estado interno
+  // ===============================
   List<Materia> _materias = [];
   List<Materia> _materiasSeleccionadas = [];
   bool _isLoading = false;
   String? _error;
 
-  // Filtros
+  // ===============================
+  // Filtros activos
+  // ===============================
   String _searchTerm = '';
   String _nivelSeleccionado = 'all';
   String _tipoSeleccionado = 'all';
 
-  // Getters
+  // ===============================
+  // Getters públicos (lectura)
+  // ===============================
   List<Materia> get materias => _materias;
   List<Materia> get materiasSeleccionadas => _materiasSeleccionadas;
   bool get isLoading => _isLoading;
@@ -24,81 +33,100 @@ class MateriaProvider with ChangeNotifier {
   String get nivelSeleccionado => _nivelSeleccionado;
   String get tipoSeleccionado => _tipoSeleccionado;
 
+  /// Retorna las materias filtradas por búsqueda, nivel y tipo.
   List<Materia> get materiasFiltradas {
     return _materias.where((materia) {
-      final matchesNivel = _nivelSeleccionado == 'all' || 
+      final coincideNivel = _nivelSeleccionado == 'all' ||
           materia.nivel.nombre == _nivelSeleccionado;
-      final matchesTipo = _tipoSeleccionado == 'all' || 
+
+      final coincideTipo = _tipoSeleccionado == 'all' ||
           materia.tipo.nombre == _tipoSeleccionado;
-      final matchesSearch = _searchTerm.isEmpty ||
+
+      final coincideBusqueda = _searchTerm.isEmpty ||
           materia.nombre.toLowerCase().contains(_searchTerm.toLowerCase()) ||
           materia.sigla.toLowerCase().contains(_searchTerm.toLowerCase());
-      
-      return matchesNivel && matchesTipo && matchesSearch;
+
+      return coincideNivel && coincideTipo && coincideBusqueda;
     }).toList();
   }
 
-  List<String> get niveles {
-    final nivelesSet = _materias.map((m) => m.nivel.nombre).toSet();
-    return nivelesSet.toList()..sort();
-  }
+  /// Retorna la lista única de niveles disponibles.
+  List<String> get niveles =>
+      _materias.map((m) => m.nivel.nombre).toSet().toList()..sort();
 
-  List<String> get tipos {
-    final tiposSet = _materias.map((m) => m.tipo.nombre).toSet();
-    return tiposSet.toList();
-  }
+  /// Retorna la lista única de tipos disponibles.
+  List<String> get tipos =>
+      _materias.map((m) => m.tipo.nombre).toSet().toList();
 
-  // Métodos
+  // ===============================
+  // Métodos públicos
+  // ===============================
+
+  /// Carga las materias desde el servicio remoto.
   Future<void> cargarMaterias() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setLoading(true);
 
     try {
       _materias = await _service.obtenerMaterias();
-      _isLoading = false;
-      notifyListeners();
+      _error = null;
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
     }
+
+    _setLoading(false);
   }
 
+  /// Cambia el estado de selección de una materia.
   void toggleMateria(Materia materia) {
     final index = _materias.indexWhere((m) => m.id == materia.id);
-    if (index != -1) {
-      _materias[index].selected = !_materias[index].selected;
-      
-      if (_materias[index].selected) {
-        _materiasSeleccionadas.add(_materias[index]);
-      } else {
-        _materiasSeleccionadas.removeWhere((m) => m.id == materia.id);
-      }
-      notifyListeners();
-    }
-  }
+    if (index == -1) return;
 
-  void setSearchTerm(String term) {
-    _searchTerm = term;
+    _materias[index].selected = !_materias[index].selected;
+
+    if (_materias[index].selected) {
+      _materiasSeleccionadas.add(_materias[index]);
+    } else {
+      _materiasSeleccionadas
+          .removeWhere((m) => m.id == _materias[index].id);
+    }
+
     notifyListeners();
   }
 
+  /// Aplica búsqueda por nombre o sigla.
+  void setSearchTerm(String term) {
+    _searchTerm = term.trim();
+    notifyListeners();
+  }
+
+  /// Aplica filtro por nivel.
   void setNivelFilter(String nivel) {
     _nivelSeleccionado = nivel;
     notifyListeners();
   }
 
+  /// Aplica filtro por tipo.
   void setTipoFilter(String tipo) {
     _tipoSeleccionado = tipo;
     notifyListeners();
   }
 
+  /// Limpia todas las selecciones actuales.
   void clearSelection() {
     for (var materia in _materias) {
       materia.selected = false;
     }
     _materiasSeleccionadas.clear();
+    notifyListeners();
+  }
+
+  // ===============================
+  // Métodos privados (internos)
+  // ===============================
+
+  /// Cambia el estado de carga y notifica.
+  void _setLoading(bool value) {
+    _isLoading = value;
     notifyListeners();
   }
 }

@@ -1,9 +1,9 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
 import 'page/login_page.dart';
-import 'page/materias_page.dart';
-import 'page/grupos_page.dart';
-import 'page/inscripcion_page.dart';
+import 'page/materias/materias_page.dart';
+import 'page/grupos/grupos_page.dart';
+import 'page/inscripciones/inscripcion_page.dart';
 import 'page/estado_page.dart';
 import 'models/materia.dart';
 
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(), // ✅ Cambio aquí
+      home: const LoginPage(), // Cambio aquí
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/materias':
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
           case '/grupos':
             final materias = settings.arguments as List<Materia>;
             return MaterialPageRoute(
-              builder: (_) => GruposPage(materiasSeleccionadas: materias),
+              builder: (_) => GruposPage(materias: materias),
             );
 
           case '/inscripcion':

@@ -28,7 +28,9 @@ class GrupoProvider with ChangeNotifier {
   String? get error => _error;
 
   int get materiasSeleccionadas {
-    return _materiasConGrupos.where((m) => m.grupoSeleccionadoId != null).length;
+    return _materiasConGrupos
+        .where((m) => m.grupoSeleccionadoId != null)
+        .length;
   }
 
   bool get tieneAlMenosUnaSeleccionada {
@@ -51,15 +53,16 @@ class GrupoProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _materiasConGrupos = [];
-      
-      for (var materia in materias) {
-        final grupos = await _service.obtenerGruposPorMateria(materia.id);
-        _materiasConGrupos.add(MateriaConGrupos(
-          materia: materia,
-          grupos: grupos,
-        ));
-      }
+      // Peticiones en paralelo
+      final gruposPorMateria = await Future.wait(
+        materias.map((materia) => _service.obtenerGruposPorMateria(materia.id)),
+      );
+
+      _materiasConGrupos = List.generate(
+        materias.length,
+        (i) =>
+            MateriaConGrupos(materia: materias[i], grupos: gruposPorMateria[i]),
+      );
 
       _isLoading = false;
       notifyListeners();
@@ -71,7 +74,9 @@ class GrupoProvider with ChangeNotifier {
   }
 
   void seleccionarGrupo(int materiaId, int grupoId) {
-    final index = _materiasConGrupos.indexWhere((m) => m.materia.id == materiaId);
+    final index = _materiasConGrupos.indexWhere(
+      (m) => m.materia.id == materiaId,
+    );
     if (index != -1) {
       if (_materiasConGrupos[index].grupoSeleccionadoId == grupoId) {
         _materiasConGrupos[index].grupoSeleccionadoId = null;
@@ -83,19 +88,31 @@ class GrupoProvider with ChangeNotifier {
   }
 
   List<Map<String, dynamic>> obtenerGruposSeleccionados() {
-    return _materiasConGrupos
-        .where((mc) => mc.grupoSeleccionadoId != null)
-        .map((mc) {
-          final grupo = mc.grupos.firstWhere((g) => g.id == mc.grupoSeleccionadoId);
-          return {
-            'materiaId': mc.materia.id,
-            'materiaNombre': mc.materia.nombre,
-            'materiaSigla': mc.materia.sigla,
-            'grupoId': grupo.id,
-            'grupoSigla': grupo.sigla,
-            'docenteId': grupo.docenteId,
-          };
-        })
-        .toList();
+    return _materiasConGrupos.where((mc) => mc.grupoSeleccionadoId != null).map(
+      (mc) {
+        final grupo = mc.grupos.firstWhere(
+          (g) => g.id == mc.grupoSeleccionadoId,
+        );
+        return {
+          'materiaId': mc.materia.id,
+          'materiaNombre': mc.materia.nombre,
+          'materiaSigla': mc.materia.sigla,
+          'grupoId': grupo.id,
+          'grupoSigla': grupo.sigla,
+          'docenteId': grupo.docenteId,
+          // Agregar el objeto docente completo
+          'docente': grupo.docente != null ? {
+            'id': grupo.docente!.id,
+            'nombre': grupo.docente!.nombre,
+          } : null,
+          // Agregar los horarios
+          'horarios': grupo.horarios.map((h) => {
+            'dia': h.dia,
+            'horaInicio': h.horaInicio,
+            'horaFin': h.horaFin,
+          }).toList(),
+        };
+      },
+    ).toList();
   }
 }
