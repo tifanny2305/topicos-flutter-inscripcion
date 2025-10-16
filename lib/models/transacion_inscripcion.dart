@@ -1,5 +1,3 @@
-// lib/models/transaccion_inscripcion.dart
-
 class TransaccionInscripcion {
   final String transactionId;
   final String estado; // 'procesando', 'procesado', 'rechazado'
@@ -23,7 +21,7 @@ class TransaccionInscripcion {
   bool get esPendiente => estado == 'procesando';
   bool get estaProcesado => estado == 'procesado';
   bool get estaRechazado => estado == 'rechazado';
-  bool get tieneError => estado == 'error';
+  bool get tieneError => estado == 'error' || tipoError != null;
 
   // Crear desde la respuesta inicial del POST
   factory TransaccionInscripcion.desdeRespuestaInicial({
@@ -76,6 +74,7 @@ class TransaccionInscripcion {
       'grupos_ids': gruposIds,
       'datos': datos,
       'mensaje': mensaje,
+      'tipo_error': tipoError,
     };
   }
 
@@ -88,6 +87,7 @@ class TransaccionInscripcion {
       gruposIds: List<int>.from(json['grupos_ids']),
       datos: json['datos'],
       mensaje: json['mensaje'],
+      tipoError: json['tipo_error'],
     );
   }
 

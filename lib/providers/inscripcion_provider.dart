@@ -15,6 +15,10 @@ class InscripcionProvider with ChangeNotifier {
   Timer? _pollingTimer;
   bool _estaCargando = false;
 
+  List<TransaccionInscripcion> get transaccionesError =>
+    _transacciones.where((t) => t.tieneError).toList();
+
+
   // Callback para notificaciones
   Function(TransaccionInscripcion)? onTransaccionCompletada;
 

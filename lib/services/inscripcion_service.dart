@@ -31,23 +31,40 @@ class InscripcionService {
         final solicitud = response['Solicitud'];
         final datos = solicitud['datos'] as Map<String, dynamic>?;
 
-        if (datos != null && datos['code'] == 409) {
-          return EstadoInscripcion.fromJson({
-            'Solicitud': {
-              'estado': 'error',
-              'datos': datos,
-              'message':
-                  datos['message'] ??
-                  'Conflicto o choque de horarios detectado',
-            },
-          });
+        if (datos != null) {
+          // Manejar choque de horarios (409)
+          if (datos['code'] == 409) {
+            return EstadoInscripcion.fromJson({
+              'Solicitud': {
+                'estado': 'error',
+                'datos': datos,
+                'message':
+                    datos['message'] ??
+                    'Conflicto o choque de horarios detectado',
+              },
+            });
+          }
+
+          // Manejar cupo agotado (422)
+          if (datos['code'] == 422) {
+            return EstadoInscripcion.fromJson({
+              'Solicitud': {
+                'estado': 'error',
+                'datos': datos,
+                'message':
+                    datos['message'] ??
+                    'Uno o más grupos no tienen cupos disponibles',
+              },
+            });
+          }
         }
       }
 
       return EstadoInscripcion.fromJson(response);
     } catch (e) {
-      // Capturar excepción de conexión o errores HTTP 409
       final mensaje = e.toString();
+
+      // Capturar errores 409
       if (mensaje.contains('409')) {
         return EstadoInscripcion.fromJson({
           'Solicitud': {
@@ -57,6 +74,20 @@ class InscripcionService {
               'message': 'Conflicto o choque de horarios detectado',
             },
             'message': 'Conflicto o choque de horarios detectado',
+          },
+        });
+      }
+
+      // Capturar errores 422
+      if (mensaje.contains('422')) {
+        return EstadoInscripcion.fromJson({
+          'Solicitud': {
+            'estado': 'error',
+            'datos': {
+              'code': 422,
+              'message': 'Uno o más grupos no tienen cupos disponibles',
+            },
+            'message': 'Uno o más grupos no tienen cupos disponibles',
           },
         });
       }
