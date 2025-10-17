@@ -93,16 +93,7 @@ class _ListaEstadosPageState extends State<ListaEstadosPage> {
                   const SizedBox(height: 24),
                 ],
 
-                // Transacciones con error
-                if (provider.transaccionesError.isNotEmpty) ...[
-                  _construirTitulo('Fallidas', Icons.error, Colors.red),
-                  const SizedBox(height: 12),
-                  ...provider.transaccionesError.map(
-                    (t) => TarjetaTransaccion(
-                      transaccion: t, // NO PASAR tipoError
-                    ),
-                  ),
-                ],
+                
 
                 // Transacciones procesadas
                 if (provider.transaccionesProcesadas.isNotEmpty) ...[

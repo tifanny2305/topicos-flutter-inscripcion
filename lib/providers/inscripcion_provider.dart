@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:topicos_inscripciones/app.dart';
 import 'package:topicos_inscripciones/models/transacion_inscripcion.dart';
 import '../models/inscripcion_request.dart';
 import '../services/inscripcion_service.dart';
@@ -15,8 +16,6 @@ class InscripcionProvider with ChangeNotifier {
   Timer? _pollingTimer;
   bool _estaCargando = false;
 
-  List<TransaccionInscripcion> get transaccionesError =>
-    _transacciones.where((t) => t.tieneError).toList();
 
 
   // Callback para notificaciones
@@ -183,6 +182,7 @@ class InscripcionProvider with ChangeNotifier {
     detenerPolling();
 
     int intentos = 0;
+    const maxIntentos = 2;
     _pollingTimer = Timer.periodic(
       Duration(seconds: Endpoints.pollingIntervalSeconds),
       (timer) async {
@@ -192,6 +192,12 @@ class InscripcionProvider with ChangeNotifier {
         );
 
         await consultarEstado(transactionId);
+
+        if (intentos >= maxIntentos) {
+          print('Se alcanzó el número máximo de intentos');
+          detenerPolling();
+          navigatorKey.currentState?.pushNamedAndRemoveUntil('/materias', (route) => false);
+        }
 
         final transaccion = _transacciones.firstWhere(
           (t) => t.transactionId == transactionId,
