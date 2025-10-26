@@ -1,6 +1,6 @@
 class Endpoints {
-  //static const String baseUrl = 'http://192.168.1.12:80/api';
-  static const String baseUrl = 'https://f21c93dcf491.ngrok-free.app/api';
+  static const String baseUrl = 'http://192.168.1.12:80/api';
+  //static const String baseUrl = 'https://f21c93dcf491.ngrok-free.app/api';
 
   // Endpoints
   static const String materias = '/materias/materia';

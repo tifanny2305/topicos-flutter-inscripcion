@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:topicos_inscripciones/page/estados/list_estado_page.dart';
 import 'package:topicos_inscripciones/page/materias/widgets/btn_continuar.dart';
-import 'package:topicos_inscripciones/page/materias/widgets/card_materia.dart';
+import 'package:topicos_inscripciones/page/materias/widgets/tarjeta_materia.dart';
 import 'package:topicos_inscripciones/page/materias/widgets/filtros_materia.dart';
 import 'package:topicos_inscripciones/page/materias/widgets/seleccion_resumen.dart';
-import 'package:topicos_inscripciones/providers/inscripcion_provider.dart';
 import 'package:topicos_inscripciones/providers/materia_provider.dart';
+import 'package:topicos_inscripciones/widgets/barra_inferior.dart';
+import 'package:topicos_inscripciones/widgets/barra_superior.dart';
 
 class MateriasPage extends StatefulWidget {
   const MateriasPage({Key? key}) : super(key: key);
@@ -19,116 +19,92 @@ class _MateriasPageState extends State<MateriasPage> {
   @override
   void initState() {
     super.initState();
+    _cargarInicialmente();
+  }
+
+  // Método auxiliar para la carga de datos
+  void _cargarInicialmente() {
+
+    // Es buena práctica usar addPostFrameCallback para llamadas asíncronas
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MateriaProvider>().cargarMaterias();
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Seleccionar Materias'),
-        backgroundColor: Colors.blue,
-        actions: [
-          // ✅ AGREGAR ESTE WIDGET
-          Consumer<InscripcionProvider>(
-            builder: (context, inscripcionProvider, _) {
-              final cantidadPendientes = inscripcionProvider.cantidadPendientes;
-
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.list_alt),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ListaEstadosPage(),
-                        ),
-                      );
-                    },
-                    tooltip: 'Mis inscripciones',
-                  ),
-                  if (cantidadPendientes > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.orange,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '$cantidadPendientes',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-      body: Consumer<MateriaProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.error != null) {
-            return _construirError(provider);
-          }
-
-          return Column(
-            children: [
-              FiltrosMateria(provider: provider),
-              if (provider.materiasSeleccionadas.isNotEmpty)
-                SeleccionMateria(provider: provider),
-              Expanded(
-                child: provider.materiasFiltradas.isEmpty
-                    ? const Center(child: Text('No se encontraron materias'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: provider.materiasFiltradas.length,
-                        itemBuilder: (context, index) => CardMateria(
-                          materia: provider.materiasFiltradas[index],
-                          provider: provider,
-                        ),
-                      ),
-              ),
-              BotonContinuar(provider: provider),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _construirError(MateriaProvider provider) {
+  // Método auxiliar para construir la vista de error
+  Widget _construirVistaError(MateriaProvider provider) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'Error: ${provider.error}',
+            'Error al cargar: ${provider.error}',
             style: const TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: provider.cargarMaterias,
             child: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+
+      appBar: const BarraSuperior(), 
+      
+      body: Consumer<MateriaProvider>(
+        builder: (context, provider, child) {
+          // Usamos el getter en español
+          if (provider.estaCargando) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.error != null) {
+            return _construirVistaError(provider);
+          }
+
+          return Column(
+            children: [
+              FiltrosMateriaWidget(provider: provider), 
+              
+              if (provider.materiasSeleccionadas.isNotEmpty)
+                ResumenSeleccionWidget(provider: provider),
+              Expanded(
+                child: provider.materiasFiltradas.isEmpty
+                    ? const Center(child: Text('No se encontraron materias.'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: provider.materiasFiltradas.length,
+                        itemBuilder: (context, index) => TarjetaMateria(
+                          materia: provider.materiasFiltradas[index],
+                          provider: provider,
+                        ),
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+      
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Consumer<MateriaProvider>(
+            builder: (context, provider, child) {
+              return BotonContinuarWidget(provider: provider);
+            },
+          ),
+          BarraInferior(
+            indiceActual: 0, 
+            alCambiarTab: (i) { 
+              // TODO: Lógica de navegación entre pestañas (e.g., /materias, /estados, /perfil)
+            },
           ),
         ],
       ),

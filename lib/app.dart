@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:topicos_inscripciones/page/estados/list_estado_page.dart';
 import 'package:topicos_inscripciones/widgets/notificacion.dart';
-import 'page/login_page.dart';
+import 'page/login/login_page.dart';
 import 'page/materias/materias_page.dart';
 import 'page/grupos/grupos_page.dart';
 import 'page/inscripciones/inscripcion_page.dart';

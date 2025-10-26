@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'endpoints.dart';
 
-class ApiClient {
+class ClienteApi {
   final http.Client _client = http.Client();
 
   Future<dynamic> get(String endpoint) async {
@@ -17,10 +17,10 @@ class ApiClient {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error en el servidor: Codigo ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error de conexión: $e');
+      throw Exception('Fallo de conexión: $e');
     }
   }
 
@@ -37,10 +37,10 @@ class ApiClient {
       if (response.statusCode == 200 || response.statusCode == 202) {
         return json.decode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error en el servidor: Codigo ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error de conexión: $e');
+      throw Exception('Fallo de conexión: $e');
     }
   }
 }

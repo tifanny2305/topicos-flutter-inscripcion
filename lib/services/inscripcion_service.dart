@@ -1,17 +1,17 @@
-import '../core/api_client.dart';
+import '../core/cliente_api.dart';
 import '../core/endpoints.dart';
 import '../models/inscripcion_request.dart';
 import '../models/inscripcion_response.dart';
 import '../models/estado_inscripcion.dart';
 
 class InscripcionService {
-  final ApiClient _apiClient = ApiClient();
+  final ClienteApi _ClienteApi = ClienteApi();
 
   Future<InscripcionResponse> crearInscripcion(
     InscripcionRequest request,
   ) async {
     try {
-      final response = await _apiClient.post(
+      final response = await _ClienteApi.post(
         Endpoints.inscripciones,
         request.toJson(),
       );
@@ -23,7 +23,7 @@ class InscripcionService {
 
   Future<EstadoInscripcion> consultarEstado(String transactionId) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _ClienteApi.get(
         Endpoints.estadoInscripcion(transactionId),
       );
 
