@@ -4,22 +4,39 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:topicos_inscripciones/app.dart';
 import 'package:topicos_inscripciones/models/transacion_inscripcion.dart';
+import 'package:topicos_inscripciones/providers/login_provider.dart';
 import '../models/inscripcion_request.dart';
 import '../services/inscripcion_service.dart';
 import '../core/endpoints.dart';
 
+typedef TransaccionCallback = void Function(TransaccionInscripcion);
+
 class InscripcionProvider with ChangeNotifier {
-  final InscripcionService _service = InscripcionService();
+  // El servicio se recibe por inyección
+  final InscripcionService _service; 
+  
+  // El Provider de Auth se recibe por inyección
+  final LoginProvider _authProvider;
 
   List<TransaccionInscripcion> _transacciones = [];
   TransaccionInscripcion? _transaccionActual;
   Timer? _pollingTimer;
   bool _estaCargando = false;
 
+  TransaccionCallback? _onTransaccionCompletada;
+  set onTransaccionCompletada(TransaccionCallback? callback) {
+    _onTransaccionCompletada = callback;
+  }
 
 
-  // Callback para notificaciones
-  Function(TransaccionInscripcion)? onTransaccionCompletada;
+  // Getter para obtener el ID de forma síncrona del estado
+  int? get idDelEstudiante => _authProvider.estudianteId;
+
+  // Constructor con inyección de ambas dependencias
+  InscripcionProvider(this._service, this._authProvider) {
+    _cargarTransaccionesLocales();
+    limpiarTransaccionesAntiguas();
+  }
 
   // Getters
   List<TransaccionInscripcion> get transacciones => _transacciones;
@@ -34,12 +51,6 @@ class InscripcionProvider with ChangeNotifier {
 
   int get cantidadPendientes => transaccionesPendientes.length;
 
-  // Constructor
-  InscripcionProvider() {
-    _cargarTransaccionesLocales();
-    limpiarTransaccionesAntiguas();
-  }
-
   // Crear inscripción
   Future<String?> crearInscripcion(List<Map<String, dynamic>> grupos) async {
     print('📝 [INSCRIPCION] Iniciando creación de inscripción...');
@@ -47,18 +58,23 @@ class InscripcionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      if (idDelEstudiante == null) {
+        throw Exception('El estudiante no está autenticado.');
+      }
+      
       final gruposIds = grupos.map((g) => g['grupoId'] as int).toList();
       print('📝 [INSCRIPCION] Grupos a inscribir: $gruposIds');
 
       final request = InscripcionRequest(
-        estudianteId: Endpoints.estudianteId,
-        gestionId: Endpoints.gestionId,
+        estudianteId: idDelEstudiante!,
+        gestionId: 1, // Asumido
         fecha: DateTime.now().toIso8601String().split('T')[0],
         grupos: gruposIds,
       );
 
       print('📝 [INSCRIPCION] Enviando petición al servidor...');
-      final response = await _service.crearInscripcion(request);
+      // ⭐️ Delegación: La lógica HTTP está en el servicio
+      final response = await _service.crearInscripcion(request); 
       print(
         '✅ [INSCRIPCION] Respuesta recibida - Transaction ID: ${response.transactionId}',
       );
@@ -85,28 +101,24 @@ class InscripcionProvider with ChangeNotifier {
     }
   }
 
+  // Consultar estado de la transacción (Polling)
   Future<void> consultarEstado(String transactionId) async {
     final shortId = transactionId.substring(0, 8);
     print('🔍 [POLLING] Consultando estado de transacción: $shortId...');
 
     try {
-      // Obtener estado desde el servicio
-      final estadoResponse = await _service.consultarEstado(transactionId);
-      print(
-        '📡 [POLLING] Respuesta recibida - Estado: ${estadoResponse.estado}',
-      );
-
+      // ⭐️ Delegación: La lógica HTTP está en el servicio
+      final estadoResponse = await _service.consultarEstado(transactionId); 
+      
+      // --- Lógica de Actualización de Estado (similar a la original) ---
       final index = _transacciones.indexWhere(
         (t) => t.transactionId == transactionId,
       );
-      if (index == -1) {
-        print('⚠️ [POLLING] Transacción no encontrada en la lista local');
-        return;
-      }
+      if (index == -1) return;
 
       final transaccionExistente = _transacciones[index];
 
-      // Crear copia base de la transacción
+      // Crear copia base de la transacción actualizada
       TransaccionInscripcion transaccionActualizada =
           TransaccionInscripcion.desdeConsulta(
             transactionId,
@@ -121,24 +133,19 @@ class InscripcionProvider with ChangeNotifier {
             transaccionExistente.fechaCreacion,
           );
 
-      // --- Detectar errores según el código del backend
+      // --- Detectar errores (409/422) ---
       final datosResp = estadoResponse.datos as Map<String, dynamic>? ?? {};
       final code = datosResp['code'] as int?;
-      final message = (datosResp['message'] ?? estadoResponse.error ?? '')
-          .toString();
+      final message = (datosResp['message'] ?? estadoResponse.error ?? '').toString();
 
       if (code == 409 || code == 422) {
-        print('⚠️ [POLLING] Error detectado: code=$code');
-
-        final solicitud = Map<String, dynamic>.from(
-          transaccionActualizada.datos ?? {},
-        );
+        // Lógica para marcar error en la transacción
+        final solicitud = Map<String, dynamic>.from(transaccionActualizada.datos ?? {});
         solicitud['code'] = code;
         solicitud['message'] = code == 409
             ? 'Conflicto de horarios detectado entre grupos.'
             : 'Uno o más grupos no tienen cupos disponibles.';
 
-        // Crear transacción marcada como error
         transaccionActualizada = TransaccionInscripcion.desdeConsulta(
           transactionId,
           {
@@ -152,19 +159,13 @@ class InscripcionProvider with ChangeNotifier {
           transaccionExistente.gruposIds,
           transaccionExistente.fechaCreacion,
         );
-
-        _transacciones[index] = transaccionActualizada;
-        _transaccionActual = transaccionActualizada;
-
         print('❌ [POLLING] Transacción marcada como error ($code)');
-        await _guardarTransaccionesLocales();
-        notifyListeners();
-        return; // detener aquí, ya se actualizó la transacción
       }
 
-      // --- Actualizar transacción normal si no hubo error
+      // --- Actualizar transacción ---
       _transacciones[index] = transaccionActualizada;
       _transaccionActual = transaccionActualizada;
+      await _guardarTransaccionesLocales(); // Guardar el nuevo estado localmente
       notifyListeners();
 
       print('✅ [POLLING] Transacción actualizada correctamente');
@@ -172,6 +173,7 @@ class InscripcionProvider with ChangeNotifier {
       print('❌ [POLLING] Error al consultar estado: $e');
     }
   }
+
 
   // Iniciar polling
   void iniciarPolling(String transactionId) {

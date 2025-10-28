@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 /// Contiene los campos de texto y el botón de ingreso.
 class FormularioWidget extends StatelessWidget {
-  final TextEditingController controladorUsuario;
-  final TextEditingController controladorContrasena;
+  final TextEditingController controladorRegistro;
+  final TextEditingController controladorCodigo;
   final bool estaCargando;
   // Usamos una función para que la lógica de autenticación viva fuera de este widget
   final VoidCallback alPresionarIngresar; 
 
   const FormularioWidget({
     super.key,
-    required this.controladorUsuario,
-    required this.controladorContrasena,
+    required this.controladorRegistro,
+    required this.controladorCodigo,
     required this.estaCargando,
     required this.alPresionarIngresar,
   });
@@ -22,11 +22,11 @@ class FormularioWidget extends StatelessWidget {
       children: [
         // Campo usuario
         TextFormField(
-          controller: controladorUsuario,
-          decoration: _decoracionCampo('Usuario', Icons.person),
+          controller: controladorRegistro,
+          decoration: _decoracionCampo('Registro', Icons.person),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Ingrese su usuario';
+              return 'Ingrese su registro';
             }
             return null;
           },
@@ -35,12 +35,12 @@ class FormularioWidget extends StatelessWidget {
 
         // Campo contraseña
         TextFormField(
-          controller: controladorContrasena,
+          controller: controladorCodigo,
           obscureText: true,
-          decoration: _decoracionCampo('Contraseña', Icons.lock),
+          decoration: _decoracionCampo('Codigo', Icons.lock),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Ingrese su contraseña';
+              return 'Ingrese su codigo';
             }
             return null;
           },

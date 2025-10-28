@@ -27,7 +27,8 @@ class InfoBanner extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Estudiante ID $estudianteId • Gestión ${Endpoints.gestionId}-${DateTime.now().year}',
+                  'Estudiante ID',
+                  //'Estudiante ID $estudianteId • Gestión ${Endpoints.gestionId}-${DateTime.now().year}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.amber.shade900,

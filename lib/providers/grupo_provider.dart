@@ -16,7 +16,11 @@ class MateriaConGrupos {
 }
 
 class GrupoProvider with ChangeNotifier {
-  final GrupoService _service = GrupoService();
+  // El servicio se recibe por inyección
+  final GrupoService _service; 
+  
+  // Constructor
+  GrupoProvider(this._service);
 
   List<MateriaConGrupos> _materiasConGrupos = [];
   bool _isLoading = false;
@@ -47,13 +51,14 @@ class GrupoProvider with ChangeNotifier {
   }
 
   // Métodos
+  /// Carga los grupos para una lista de materias en paralelo.
   Future<void> cargarGruposPorMaterias(List<Materia> materias) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Peticiones en paralelo
+      // ⭐️ Delegación: La lógica HTTP está en el servicio
       final gruposPorMateria = await Future.wait(
         materias.map((materia) => _service.obtenerGruposPorMateria(materia.id)),
       );
@@ -67,7 +72,7 @@ class GrupoProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Error al cargar grupos: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
     }
@@ -78,6 +83,7 @@ class GrupoProvider with ChangeNotifier {
       (m) => m.materia.id == materiaId,
     );
     if (index != -1) {
+      // Lógica para deseleccionar si se vuelve a presionar el mismo grupo
       if (_materiasConGrupos[index].grupoSeleccionadoId == grupoId) {
         _materiasConGrupos[index].grupoSeleccionadoId = null;
       } else {
@@ -87,6 +93,7 @@ class GrupoProvider with ChangeNotifier {
     }
   }
 
+  /// Retorna la lista de grupos seleccionados con todos sus detalles.
   List<Map<String, dynamic>> obtenerGruposSeleccionados() {
     return _materiasConGrupos.where((mc) => mc.grupoSeleccionadoId != null).map(
       (mc) {
@@ -100,12 +107,10 @@ class GrupoProvider with ChangeNotifier {
           'grupoId': grupo.id,
           'grupoSigla': grupo.sigla,
           'docenteId': grupo.docenteId,
-          // Agregar el objeto docente completo
           'docente': grupo.docente != null ? {
             'id': grupo.docente!.id,
             'nombre': grupo.docente!.nombre,
           } : null,
-          // Agregar los horarios
           'horarios': grupo.horarios.map((h) => {
             'dia': h.dia,
             'horaInicio': h.horaInicio,

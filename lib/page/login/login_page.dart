@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:topicos_inscripciones/page/login/widgets/encabezado.dart';
 import 'package:topicos_inscripciones/page/login/widgets/formulario.dart';
+import 'package:topicos_inscripciones/providers/login_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -12,36 +14,42 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _claveFormulario = GlobalKey<FormState>();
 
-  final _controladorUsuario = TextEditingController(text: 'estudiante1');
-  final _controladorContrasena = TextEditingController(text: '123456');
+  final _controladorRegistro = TextEditingController();
+  final _controladorCodigo = TextEditingController();
   bool _estaCargando = false;
 
   @override
   void dispose() {
-    _controladorUsuario.dispose();
-    _controladorContrasena.dispose();
+    _controladorRegistro.dispose();
+    _controladorCodigo.dispose();
     super.dispose();
   }
 
-  // MÉTODO CLAVE: Lógica de Autenticación
+  //Lógica de Autenticación
   Future<void> _autenticar() async {
-    // 1. Validar el formulario
+
     if (!_claveFormulario.currentState!.validate()) return;
 
-    // 2. Iniciar la carga y refrescar la UI
     setState(() => _estaCargando = true);
 
-    // TODO: Aquí va la llamada real a tu API con ClienteApi.enviar(...)
-    // Por ahora, simulamos el retraso.
-    await Future.delayed(const Duration(seconds: 1));
+    final authProvider = Provider.of<LoginProvider>(context, listen: false);
+    final registro = _controladorRegistro.text;
+    final codigo = _controladorCodigo.text;
+    final exito = await authProvider.login(registro, codigo);
 
-    // 3. Finalizar la carga y refrescar la UI
     setState(() => _estaCargando = false);
 
-    // 4. Navegación (siempre verifica 'mounted')
     if (mounted) {
-      // Login exitoso - navegar a materias
-      Navigator.pushReplacementNamed(context, '/materias');
+      if (exito) {
+        Navigator.pushReplacementNamed(context, '/materias');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error de autenticación. Verifique su registro y código.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -64,8 +72,8 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Widget Lógica del formulario
                   FormularioWidget(
-                    controladorUsuario: _controladorUsuario,
-                    controladorContrasena: _controladorContrasena,
+                    controladorRegistro: _controladorRegistro,
+                    controladorCodigo: _controladorCodigo,
                     estaCargando: _estaCargando,
                     alPresionarIngresar: _autenticar, // método de autenticación
                   ),

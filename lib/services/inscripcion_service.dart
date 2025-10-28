@@ -5,55 +5,54 @@ import '../models/inscripcion_response.dart';
 import '../models/estado_inscripcion.dart';
 
 class InscripcionService {
-  final ClienteApi _ClienteApi = ClienteApi();
+  final ClienteApi _clienteApi;
+
+  // Constructor que recibe la inyección
+  InscripcionService(this._clienteApi); 
 
   Future<InscripcionResponse> crearInscripcion(
     InscripcionRequest request,
   ) async {
     try {
-      final response = await _ClienteApi.post(
+      final response = await _clienteApi.post(
         Endpoints.inscripciones,
         request.toJson(),
       );
       return InscripcionResponse.fromJson(response);
     } catch (e) {
-      throw Exception('Error al crear inscripción: $e');
+      throw Exception('Error al crear inscripción: ${e.toString()}');
     }
   }
 
   Future<EstadoInscripcion> consultarEstado(String transactionId) async {
     try {
-      final response = await _ClienteApi.get(
+      final response = await _clienteApi.get(
         Endpoints.estadoInscripcion(transactionId),
       );
 
+      // Si el response es un Map, aplicamos la lógica de verificación de códigos de error
       if (response is Map<String, dynamic>) {
         final solicitud = response['Solicitud'];
         final datos = solicitud['datos'] as Map<String, dynamic>?;
 
         if (datos != null) {
-          // Manejar choque de horarios (409)
+          // Si el servidor devuelve los códigos 409 o 422 dentro del JSON de datos:
           if (datos['code'] == 409) {
             return EstadoInscripcion.fromJson({
               'Solicitud': {
                 'estado': 'error',
                 'datos': datos,
-                'message':
-                    datos['message'] ??
-                    'Conflicto o choque de horarios detectado',
+                'message': datos['message'] ?? 'Conflicto o choque de horarios detectado',
               },
             });
           }
 
-          // Manejar cupo agotado (422)
           if (datos['code'] == 422) {
             return EstadoInscripcion.fromJson({
               'Solicitud': {
                 'estado': 'error',
                 'datos': datos,
-                'message':
-                    datos['message'] ??
-                    'Uno o más grupos no tienen cupos disponibles',
+                'message': datos['message'] ?? 'Uno o más grupos no tienen cupos disponibles',
               },
             });
           }
@@ -62,37 +61,9 @@ class InscripcionService {
 
       return EstadoInscripcion.fromJson(response);
     } catch (e) {
-      final mensaje = e.toString();
-
-      // Capturar errores 409
-      if (mensaje.contains('409')) {
-        return EstadoInscripcion.fromJson({
-          'Solicitud': {
-            'estado': 'error',
-            'datos': {
-              'code': 409,
-              'message': 'Conflicto o choque de horarios detectado',
-            },
-            'message': 'Conflicto o choque de horarios detectado',
-          },
-        });
-      }
-
-      // Capturar errores 422
-      if (mensaje.contains('422')) {
-        return EstadoInscripcion.fromJson({
-          'Solicitud': {
-            'estado': 'error',
-            'datos': {
-              'code': 422,
-              'message': 'Uno o más grupos no tienen cupos disponibles',
-            },
-            'message': 'Uno o más grupos no tienen cupos disponibles',
-          },
-        });
-      }
-
-      throw Exception('Error al consultar estado: $e');
+      // Si el error es una excepción de red o del cliente, relanzamos
+      // NOTA: El ClienteApi ya debería lanzar excepciones de 4xx
+      throw Exception('Error al consultar estado: ${e.toString()}');
     }
   }
 }

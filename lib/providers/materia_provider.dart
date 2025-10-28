@@ -5,7 +5,11 @@ import '../models/materia.dart';
 /// Provider responsable de manejar el estado y la lógica
 /// relacionada con la selección y filtrado de materias.
 class MateriaProvider with ChangeNotifier {
-  final MateriaService _servicioMateria = MateriaService();
+  // El servicio se recibe por inyección
+  final MateriaService _servicioMateria;
+
+  // Constructor que recibe la dependencia
+  MateriaProvider(this._servicioMateria);
 
   // Estado interno
   List<Materia> _listaMaterias = [];
@@ -59,14 +63,18 @@ class MateriaProvider with ChangeNotifier {
 
   // Métodos públicos
   /// Carga las materias desde el servicio remoto.
-  Future<void> cargarMaterias() async {
+  Future<void> cargarMaterias(int estudianteId) async {
+    print('Iniciando carga de materias...');
     _establecerCarga(true);
 
     try {
-      _listaMaterias = await _servicioMateria.obtenerMaterias();
+      _listaMaterias = await _servicioMateria.obtenerMaterias(estudianteId);
       _error = null;
+
+      print('Materias cargadas: ${_listaMaterias.length}');
     } catch (e) {
-      _error = e.toString();
+      _error = 'Error al cargar materias: ${e.toString()}';
+      print('$_error');
     }
 
     _establecerCarga(false);
@@ -74,7 +82,6 @@ class MateriaProvider with ChangeNotifier {
 
   /// Cambia el estado de selección de una materia.
   void alternarSeleccionMateria(Materia materia) {
-    // Renombrado de 'toggleMateria'
     final index = _listaMaterias.indexWhere((m) => m.id == materia.id);
     if (index == -1) return;
 
